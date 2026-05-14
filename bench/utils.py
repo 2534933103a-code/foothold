@@ -1,7 +1,8 @@
-"""Benchmark utilities: CUDA timer, warmup, CSV output."""
+"""Benchmark utilities: CUDA timer, warmup, xlsx output."""
 
-import csv
+import os
 import torch
+from openpyxl import Workbook
 
 
 class CudaTimer:
@@ -41,19 +42,19 @@ def benchmark(fn, iters=100):
     return total / iters
 
 
-def save_csv(results, path):
-    """Save list of dicts to CSV. Creates parent directories if needed."""
+def save_xlsx(results, path):
+    """Save list of dicts to xlsx. Creates parent directories if needed."""
     if not results:
         print(f"  [skip] No results to save for {path}")
         return
-    import os
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    # Collect union of all keys so heterogeneous result sets don't break
     fieldnames = list(dict.fromkeys(k for r in results for k in r))
-    with open(path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        writer.writeheader()
-        writer.writerows(results)
+    wb = Workbook()
+    ws = wb.active
+    ws.append(fieldnames)
+    for r in results:
+        ws.append([r.get(k, "") for k in fieldnames])
+    wb.save(path)
     print(f"  Saved {len(results)} rows → {path}")
 
 

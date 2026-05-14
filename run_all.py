@@ -13,6 +13,7 @@ import time
 
 import torch
 import yaml
+from tqdm import tqdm
 
 from bench.gemm import bench_gemm
 from bench.attention import bench_attention
@@ -31,8 +32,8 @@ def main():
         help="Path to YAML config file",
     )
     parser.add_argument(
-        "--output", default="results/all_operators.csv",
-        help="Path to output CSV file",
+        "--output", default="results",
+        help="Directory to save output xlsx files",
     )
     args = parser.parse_args()
 
@@ -54,37 +55,38 @@ def main():
           f"{len(cfg['batch_sizes']) * len(cfg['seq_lens']) * len(cfg['hidden_dims'])}")
     print("=" * 70)
 
-    os.makedirs("results", exist_ok=True)
+    out_dir = args.output
+    os.makedirs(out_dir, exist_ok=True)
+    
+    gemm_xlsx = os.path.join(out_dir, "gemm.xlsx")
+    attention_xlsx = os.path.join(out_dir, "attention.xlsx")
+    norm_xlsx = os.path.join(out_dir, "norm.xlsx")
+    all_xlsx = os.path.join(out_dir, "all_operators.xlsx")
 
     all_results = []
 
     t0 = time.perf_counter()
 
-    print("\n[1/3] GEMM benchmarks")
-    gemm_results = bench_gemm(cfg)
-    all_results.extend(gemm_results)
-    torch.cuda.empty_cache()
+    phases = [
+        ("GEMM", bench_gemm, cfg, gemm_xlsx),
+        ("Attention", bench_attention, cfg, attention_xlsx),
+        ("Norm", bench_norm, cfg, norm_xlsx),
+    ]
 
-    print("\n[2/3] Attention benchmarks")
-    attn_results = bench_attention(cfg)
-    all_results.extend(attn_results)
-    torch.cuda.empty_cache()
+    for name, bench_fn, bench_cfg, bench_xlsx in tqdm(phases, desc="Overall", unit="phase"):
+        tqdm.write(f"\n[{name}]")
+        results = bench_fn(bench_cfg, output_path=bench_xlsx)
+        all_results.extend(results)
+        torch.cuda.empty_cache()
 
-    print("\n[3/3] Norm benchmarks")
-    norm_results = bench_norm(cfg)
-    all_results.extend(norm_results)
+    # Aggregate all results into a single xlsx
+    from bench.utils import save_xlsx
 
-    # Aggregate all results into a single CSV
-    from bench.utils import save_csv
-    
-    out_dir = os.path.dirname(args.output)
-    if out_dir:
-        os.makedirs(out_dir, exist_ok=True)
-    save_csv(all_results, args.output)
+    save_xlsx(all_results, all_xlsx)
 
     elapsed = time.perf_counter() - t0
     print(f"\nDone in {elapsed:.1f}s — {len(all_results)} rows saved.")
-    print(f"Output files: results/gemm.csv, results/attention.csv, results/norm.csv, {args.output}")
+    print(f"Output files: {gemm_xlsx}, {attention_xlsx}, {norm_xlsx}, {all_xlsx}")
 
 
 if __name__ == "__main__":

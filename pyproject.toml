@@ -5,8 +5,10 @@ description = "Add your description here"
 requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.4.4",
+    "openpyxl>=3.1.0",
     "pyyaml>=6.0.3",
     "torch>=2.11.0",
+    "tqdm>=4.65.0",
 ]
 
 [[tool.uv.index]]
