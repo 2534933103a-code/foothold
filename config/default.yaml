@@ -1,0 +1,12 @@
+# Parameter sweep configuration for LLM operator benchmarks
+# Each list will be combined via Cartesian product.
+
+batch_sizes: [1, 2, 4, 8]
+seq_lens: [256, 512, 1024, 2048, 4096]
+hidden_dims: [2048, 4096]
+num_heads: 32      # head_dim = hidden_dim / num_heads
+
+dtype: "float16"
+warmup_iters: 5
+bench_iters: 100
+max_memory_gb: 7.5
