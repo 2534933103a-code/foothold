@@ -9,4 +9,4 @@ num_heads: 32      # head_dim = hidden_dim / num_heads
 dtype: "float16"
 warmup_iters: 5
 bench_iters: 100
-max_memory_gb: 7.5
+max_memory_gb: 6

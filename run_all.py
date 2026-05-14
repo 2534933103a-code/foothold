@@ -30,6 +30,10 @@ def main():
         "--config", default="config/default.yaml",
         help="Path to YAML config file",
     )
+    parser.add_argument(
+        "--output", default="results/all_operators.csv",
+        help="Path to output CSV file",
+    )
     args = parser.parse_args()
 
     if not torch.cuda.is_available():
@@ -39,7 +43,7 @@ def main():
     cfg = load_config(args.config)
 
     gpu_name = torch.cuda.get_device_name(0)
-    gpu_mem = torch.cuda.get_device_properties(0).total_mem / (1024**3)
+    gpu_mem = torch.cuda.get_device_properties(0).total_memory / (1024**3)
     print(f"GPU: {gpu_name} ({gpu_mem:.1f} GiB)")
     print(f"Config: {args.config}")
     print(f"dtype: {cfg['dtype']}, warmup={cfg['warmup_iters']}, "
@@ -55,13 +59,16 @@ def main():
     all_results = []
 
     t0 = time.perf_counter()
+
     print("\n[1/3] GEMM benchmarks")
     gemm_results = bench_gemm(cfg)
     all_results.extend(gemm_results)
+    torch.cuda.empty_cache()
 
     print("\n[2/3] Attention benchmarks")
     attn_results = bench_attention(cfg)
     all_results.extend(attn_results)
+    torch.cuda.empty_cache()
 
     print("\n[3/3] Norm benchmarks")
     norm_results = bench_norm(cfg)
@@ -69,11 +76,15 @@ def main():
 
     # Aggregate all results into a single CSV
     from bench.utils import save_csv
-    save_csv(all_results, "results/all_operators.csv")
+    
+    out_dir = os.path.dirname(args.output)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+    save_csv(all_results, args.output)
 
     elapsed = time.perf_counter() - t0
-    print(f"\nDone in {elapsed:.1f}s — {len(all_results)} rows saved to results/")
-    print("Output files: results/gemm.csv, results/attention.csv, results/norm.csv, results/all_operators.csv")
+    print(f"\nDone in {elapsed:.1f}s — {len(all_results)} rows saved.")
+    print(f"Output files: results/gemm.csv, results/attention.csv, results/norm.csv, {args.output}")
 
 
 if __name__ == "__main__":

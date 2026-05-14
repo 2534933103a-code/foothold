@@ -6,18 +6,16 @@ LLM 推理算子性能基准测试工具，支持 FP16 精度下 GEMM、Attentio
 
 - Python ≥ 3.10
 - NVIDIA GPU（8GB+ VRAM），CUDA ≥ 12.6
-- 使用 [uv](https://docs.astral.sh/uv/) 管理依赖
 
 ```bash
-uv pip install torch --index-url https://download.pytorch.org/whl/cu128
-uv pip install pyyaml
+uv sync
 ```
 
 ## 用法
 
 ```bash
-python run_all.py                          # 使用 config/default.yaml
-python run_all.py --config config/custom.yaml
+uv run run_all.py                          # 使用 config/default.yaml
+uv run python run_all.py --config config/custom.yaml
 ```
 
 ## 配置
@@ -32,7 +30,7 @@ num_heads: 32
 dtype: "float16"
 warmup_iters: 5
 bench_iters: 100
-max_memory_gb: 7.5      # 保护 8GB 显存，超限自动跳过
+max_memory_gb: 6      # 保护 8GB 显存，超限自动跳过
 ```
 
 参数会被做笛卡尔积，每个 `[b, s, h]` 组合生成一组 shape。

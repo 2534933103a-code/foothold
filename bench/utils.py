@@ -48,8 +48,10 @@ def save_csv(results, path):
         return
     import os
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    # Collect union of all keys so heterogeneous result sets don't break
+    fieldnames = list(dict.fromkeys(k for r in results for k in r))
     with open(path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=list(results[0].keys()))
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(results)
     print(f"  Saved {len(results)} rows → {path}")
