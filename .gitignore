@@ -11,3 +11,6 @@ wheels/
 
 # Output results
 results/
+
+# Test code
+test/

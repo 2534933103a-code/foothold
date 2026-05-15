@@ -6,18 +6,6 @@ from tqdm import tqdm
 from bench.utils import warmup, benchmark, save_xlsx, check_memory, estimate_memory_gb
 
 
-class RMSNormFn(torch.autograd.Function):
-    """RMSNorm forward (no backward needed for benchmarking)."""
-
-    @staticmethod
-    def forward(ctx, x, weight, eps):
-        rms = x.pow(2).mean(-1, keepdim=True).add(eps).sqrt()
-        return x / rms * weight
-
-
-def rms_norm(x, weight, eps=1e-6):
-    return RMSNormFn.apply(x, weight, eps)
-
 
 def bench_norm(config, output_path="results/norm.xlsx"):
     """Benchmark LayerNorm and RMSNorm for each [b, s, h]."""
@@ -61,7 +49,7 @@ def bench_norm(config, output_path="results/norm.xlsx"):
         })
         # --- RMSNorm ---
         def rmsnorm_fn(x=x, w=w):
-            rms_norm(x, w, 1e-6)
+            F.rms_norm(x, (h,), w, 1e-5)
 
         warmup(rmsnorm_fn, warmup_iters)
         ms = benchmark(rmsnorm_fn, bench_iters)

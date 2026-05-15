@@ -19,7 +19,7 @@ Three benchmark modules in [`bench/`](bench/) — each follows the same pattern:
 - [`bench/utils.py`](bench/utils.py) — `CudaTimer` (CUDA event-based GPU timing via context manager), `warmup()` / `benchmark()` / `save_csv()` / `estimate_memory_gb()` / `check_memory()`. Every benchmark module imports from here.
 - [`bench/gemm.py`](bench/gemm.py) — Q/K/V/O projection and FFN up/gate/down as `torch.mm`. Shape functions in `GEMM_OPS` dict map `(M, h) → (M, K, N)`.
 - [`bench/attention.py`](bench/attention.py) — QK^T matmul (`torch.bmm`), softmax (`F.softmax`), score×V matmul. Uses multi-head layout `[b, n_heads, s, head_dim]` where `head_dim = h // num_heads`.
-- [`bench/norm.py`](bench/norm.py) — `F.layer_norm` and a custom `RMSNormFn` (autograd Function for forward-only RMSNorm). Both normalize over the last dimension `[h]`.
+- [`bench/norm.py`](bench/norm.py) — `F.layer_norm` and `F.rms_norm`, both over the last dimension `[h]`.
 - [`run_all.py`](run_all.py) — CLI entry point. Sequentially calls the three bench modules, clears CUDA cache between them, aggregates all results into `results/all_operators.csv`.
 
 ## Memory model

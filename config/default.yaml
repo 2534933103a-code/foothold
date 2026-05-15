@@ -7,6 +7,6 @@ hidden_dims: [512, 1024, 2048]
 num_heads: [12, 24, 32]      # head_dim = hidden_dim / num_heads
 
 dtype: "float16"
-warmup_iters: 100
-bench_iters: 200
+warmup_iters: 200
+bench_iters: 1000
 max_memory_gb: 6
