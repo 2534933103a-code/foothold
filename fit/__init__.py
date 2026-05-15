@@ -2,6 +2,7 @@ from fit.utils import load_results
 from fit.gemm import fit_gemm
 from fit.attention import fit_attention
 from fit.norm import fit_norm
+from fit.activation import fit_activation
 
 
 def main():
@@ -27,3 +28,4 @@ def main():
     fit_gemm(results)
     fit_attention(results)
     fit_norm(results)
+    fit_activation(results)

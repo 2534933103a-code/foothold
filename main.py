@@ -19,6 +19,7 @@ from tqdm import tqdm
 from bench.gemm import bench_gemm
 from bench.attention import bench_attention
 from bench.norm import bench_norm
+from bench.activation import bench_activation
 
 
 def load_config(path):
@@ -51,6 +52,7 @@ def run_benchmarks(args):
     gemm_xlsx = os.path.join(out_dir, "gemm.xlsx")
     attention_xlsx = os.path.join(out_dir, "attention.xlsx")
     norm_xlsx = os.path.join(out_dir, "norm.xlsx")
+    activation_xlsx = os.path.join(out_dir, "activation.xlsx")
     all_xlsx = os.path.join(out_dir, "all_operators.xlsx")
 
     all_results = []
@@ -61,6 +63,7 @@ def run_benchmarks(args):
         ("GEMM", bench_gemm, cfg, gemm_xlsx),
         ("Attention", bench_attention, cfg, attention_xlsx),
         ("Norm", bench_norm, cfg, norm_xlsx),
+        ("Activation", bench_activation, cfg, activation_xlsx),
     ]
 
     for name, bench_fn, bench_cfg, bench_xlsx in tqdm(phases, desc="Overall", unit="phase"):
@@ -74,11 +77,11 @@ def run_benchmarks(args):
 
     elapsed = time.perf_counter() - t0
     print(f"\nDone in {elapsed:.1f}s - {len(all_results)} rows saved.")
-    print(f"Output files: {gemm_xlsx}, {attention_xlsx}, {norm_xlsx}, {all_xlsx}")
+    print(f"Output files: {gemm_xlsx}, {attention_xlsx}, {norm_xlsx}, {activation_xlsx}, {all_xlsx}")
 
 
 def run_fit(results_dir):
-    from fit import load_results, fit_gemm, fit_attention, fit_norm
+    from fit import load_results, fit_gemm, fit_attention, fit_norm, fit_activation
 
     all_xlsx = os.path.join(results_dir, "all_operators.xlsx")
     if not os.path.exists(all_xlsx):
@@ -94,6 +97,7 @@ def run_fit(results_dir):
     fit_gemm(results)
     fit_attention(results)
     fit_norm(results)
+    fit_activation(results)
 
 
 def main():

@@ -1,4 +1,4 @@
-"""Benchmark GEMM operators found in LLM inference (Q/K/V/O proj, FFN layers)."""
+"""Benchmark GEMM operators found in LLM inference (Q/K/V/O proj, FFN layers, lm_head)."""
 
 import torch
 from tqdm import tqdm
@@ -26,6 +26,8 @@ def bench_gemm(config, output_path="results/gemm.xlsx"):
     device = torch.device("cuda")
 
     from itertools import product
+
+    vocab_sizes = config.get("vocab_sizes", [])
 
     results = []
     combos = list(product(config["batch_sizes"], config["seq_lens"], config["hidden_dims"]))
@@ -66,6 +68,33 @@ def bench_gemm(config, output_path="results/gemm.xlsx"):
                 "time_ms": f"{avg_ms:.6f}",
             })
 
+            del a, w
+
+        # --- lm_head: [M, h] x [h, vocab] ---
+        for vocab in vocab_sizes:
+            m_val, k_val, n_val = M, h, vocab
+            lm_oom = not check_memory(estimate_memory_gb(b, s, max(h, vocab)) * 3, max_mem)
+            if lm_oom:
+                results.append({
+                    "op_name": "lm_head", "b": b, "s": s, "h": h,
+                    "M": m_val, "K": k_val, "N": n_val,
+                    "time_ms": "OOM",
+                })
+                continue
+
+            a = torch.randn(m_val, k_val, dtype=dtype, device=device)
+            w = torch.randn(k_val, n_val, dtype=dtype, device=device)
+
+            def mm(a=a, w=w):
+                torch.mm(a, w)
+
+            warmup(mm, warmup_iters)
+            avg_ms = benchmark(mm, bench_iters)
+            results.append({
+                "op_name": "lm_head", "b": b, "s": s, "h": h,
+                "M": m_val, "K": k_val, "N": n_val,
+                "time_ms": f"{avg_ms:.6f}",
+            })
             del a, w
 
     if output_path:

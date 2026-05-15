@@ -5,6 +5,7 @@ batch_sizes: [1, 2, 4, 8]
 seq_lens: [256, 512, 1024, 2048]
 hidden_dims: [512, 1024, 2048]
 num_heads: [12, 24, 32]      # head_dim = hidden_dim / num_heads
+vocab_sizes: [32000, 128256]  # for lm_head
 
 dtype: "float16"
 warmup_iters: 200

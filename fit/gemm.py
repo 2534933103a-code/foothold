@@ -8,7 +8,7 @@ def fit_gemm(results):
     print("GEMM Operators")
     print("=" * 60)
 
-    gemm_ops = {"q_proj", "k_proj", "v_proj", "o_proj", "ffn_up", "ffn_gate", "ffn_down"}
+    gemm_ops = {"q_proj", "k_proj", "v_proj", "o_proj", "ffn_up", "ffn_gate", "ffn_down", "lm_head"}
     ops = sorted(set(r["op_name"] for r in results) & gemm_ops)
     all_x, all_y = [], []
 
